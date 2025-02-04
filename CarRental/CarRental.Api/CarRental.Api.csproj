@@ -20,8 +20,4 @@
     <ProjectReference Include="..\CarRental.DataService\CarRental.DataService.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\V1\Auth\" />
-  </ItemGroup>
-
 </Project>

@@ -16,6 +16,6 @@ namespace CarRental.Entities.Interfaces
         public DateTime Modified { get; set; }
 
         public IdentityUser Creator { get; set; }
-        public IdentityUser Modifier { get; set; } 
+        public IdentityUser Modifier { get; set; }
     }
 }
