@@ -33,6 +33,8 @@ namespace CarRental.Entities.DbSets
         [MaxLength(100)]
         public string DriverLicenseNumber { get; set; } = string.Empty;
 
+        public List<RefreshToken>? RefreshTokens { get; set; }
+
        
     }
 }

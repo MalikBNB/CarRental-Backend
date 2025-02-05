@@ -2,12 +2,15 @@
 using CarRental.Authentication.Configuration;
 using CarRental.Authentication.Models;
 using CarRental.Authentication.Models.DTOs.Incoming;
+using CarRental.Authentication.Models.DTOs.Outgoing;
 using CarRental.Configuration.Messages;
 using CarRental.Entities.DbSets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 
@@ -42,25 +45,32 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             return new AuthModel { Errors = result.Errors.Select(e => e.Description).ToList() };
 
-        await _userManager.AddToRoleAsync(user, "User");
+        var roleResult = await AddRoleAsync(new AddRoleDto { UserId = user.Id, Role = registrationDto.Role });
 
         var jwtSecurityToken = await GenerateToken(user);
-
+        
         return new AuthModel
         {
             Email = user.Email,
             Username = user.UserName,
             IsAuthenticated = true,
-            Roles = new List<string> { "User" },
-            Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken)
+            Roles = new List<string> { string.IsNullOrEmpty(roleResult) ? registrationDto.Role : null! },
+            Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+            //ExpiresOn = jwtSecurityToken.ValidTo
         };
     }
 
     public async Task<AuthModel> LoginAsync(LoginRequestDto loginDto)
     {
         var authModel = new AuthModel();
+        var user = new User();
+        var email = new EmailAddressAttribute();
 
-        var user = await _userManager.FindByEmailAsync(loginDto.Email);
+        if (email.IsValid(loginDto.Username))
+            user = await _userManager.FindByEmailAsync(loginDto.Username);
+        else
+            user = await _userManager.FindByNameAsync(loginDto.Username);
+
         if (user is null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
         {
             authModel.Errors = new List<string> { ErrorMessages.Login.InvalidAuthentication };
@@ -72,11 +82,26 @@ public class AuthService : IAuthService
 
         authModel.IsAuthenticated = true;
         authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+        //authModel.ExpiresOn = jwtSecurityToken.ValidTo;
         authModel.Email = user.Email;
         authModel.Username = user.UserName;
         authModel.Roles = rolesList.ToList();
 
         return authModel;
+    }
+
+    public async Task<string> AddRoleAsync(AddRoleDto roleDto)
+    {
+        var user = await _userManager.FindByIdAsync(roleDto.UserId);
+        if (user is null || !await _roleManager.RoleExistsAsync(roleDto.Role))
+            return ErrorMessages.Role.InvalidUserIdOrRolr;
+
+        if (await _userManager.IsInRoleAsync(user, roleDto.Role))
+            return ErrorMessages.Role.AlreadyAssigned;
+
+        var result = await _userManager.AddToRoleAsync(user, roleDto.Role);
+
+        return result.Succeeded ? string.Empty : ErrorMessages.Generic.SomethingWentWrong;
     }
 
     private async Task<JwtSecurityToken> GenerateToken(User user)
@@ -101,28 +126,17 @@ public class AuthService : IAuthService
         var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.Key));
         var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 
-        var jwtSecurityToken = new JwtSecurityToken(
-                issuer: _jwtConfig.Issuer,
-                audience: _jwtConfig.Audience,
-                claims: claims,
-                expires: DateTime.Now.AddDays(_jwtConfig.DurationInDays),
-                signingCredentials: signingCredentials
-            );
+        var jwtSecurityToken = new JwtSecurityToken
+        (
+            issuer: _jwtConfig.Issuer,
+            audience: _jwtConfig.Audience,
+            claims: claims,
+            expires: DateTime.Now.AddDays(_jwtConfig.DurationInDays),
+            signingCredentials: signingCredentials
+        );
 
         return jwtSecurityToken;
     }
 
-    public async Task<string> AddRoleAsync(AddRoleDto roleDto)
-    {
-        var user = await _userManager.FindByIdAsync(roleDto.UserId);
-        if (user is null || !await _roleManager.RoleExistsAsync(roleDto.Role))
-            return ErrorMessages.Role.InvalidUserIdOrRolr;
 
-        if (await _userManager.IsInRoleAsync(user, roleDto.Role))
-            return ErrorMessages.Role.AlreadyAssigned;
-
-        var result = await _userManager.AddToRoleAsync(user, roleDto.Role);
-
-        return result.Succeeded ? string.Empty : ErrorMessages.Generic.SomethingWentWrong;
-    }
 }

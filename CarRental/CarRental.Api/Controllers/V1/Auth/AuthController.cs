@@ -1,10 +1,7 @@
 ﻿using AutoMapper;
 using CarRental.Authentication.Models.DTOs.Incoming;
 using CarRental.Authentication.Services;
-using CarRental.Entities.DbSets;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarRental.Api.Controllers.V1.Auth;
@@ -34,7 +31,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync(LoginRequestDto loginDto)
+    public async Task<IActionResult> LoginAsync([FromBody]LoginRequestDto loginDto)
     {
         var result = await _authService.LoginAsync(loginDto);
 
@@ -45,10 +42,11 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("role")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddRoleAsync([FromBody]AddRoleDto roleDto)
     {
-        //if (!ModelState.IsValid)
-        //    return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         var result = await _authService.AddRoleAsync(roleDto);
 

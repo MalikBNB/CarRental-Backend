@@ -1,5 +1,5 @@
-﻿using CarRental.Authentication.Models;
-using CarRental.Authentication.Models.DTOs.Incoming;
+﻿using CarRental.Authentication.Models.DTOs.Incoming;
+using CarRental.Authentication.Models.DTOs.Outgoing;
 
 namespace CarRental.Authentication.Services;
 
