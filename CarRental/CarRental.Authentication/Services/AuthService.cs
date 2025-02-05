@@ -111,7 +111,7 @@ public class AuthService : IAuthService
         var roleClaims = new List<Claim>();
 
         foreach (var role in roles)
-            roleClaims.Add(new Claim("roles", role));
+            roleClaims.Add(new Claim(ClaimTypes.Role, role));
 
         var claims = new[]
         {

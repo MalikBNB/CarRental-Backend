@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRental.Authentication.Models.DTOs.Incoming;
 using CarRental.Authentication.Services;
+using CarRental.Entities.Global;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,8 +42,8 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("role")]
-    [Authorize(Roles = "Admin")]
+    [HttpPost("add-role")]
+    [Authorize(Roles = AppRoles.Admin)]
     public async Task<IActionResult> AddRoleAsync([FromBody]AddRoleDto roleDto)
     {
         if (!ModelState.IsValid)

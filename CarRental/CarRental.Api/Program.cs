@@ -3,6 +3,7 @@ using CarRental.Authentication.Configuration;
 using CarRental.Authentication.Services;
 using CarRental.DataService.Data;
 using CarRental.Entities.DbSets;
+using CarRental.Entities.Global;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -81,6 +82,25 @@ builder.Services.AddAuthentication(options =>
 
 
 var app = builder.Build();
+
+#region Add Application Roles
+
+using (var serviceScope = app.Services.CreateScope())
+{
+    var services = serviceScope.ServiceProvider;
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+    if (!await roleManager.RoleExistsAsync(AppRoles.Admin))
+        await roleManager.CreateAsync(new IdentityRole(AppRoles.Admin));
+
+    if (!await roleManager.RoleExistsAsync(AppRoles.User))
+        await roleManager.CreateAsync(new IdentityRole(AppRoles.User));
+
+    if (!await roleManager.RoleExistsAsync(AppRoles.Customer))
+        await roleManager.CreateAsync(new IdentityRole(AppRoles.Customer));
+}
+
+#endregion Add Application Roles
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
