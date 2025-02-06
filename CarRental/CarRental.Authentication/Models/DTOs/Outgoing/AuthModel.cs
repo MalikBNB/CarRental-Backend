@@ -11,7 +11,8 @@ namespace CarRental.Authentication.Models.DTOs.Outgoing
         public bool IsAuthenticated { get; set; }
         public List<string> Roles { get; set; } = null!;
         public string Token { get; set; } = string.Empty;
-        //public DateTime ExpiresOn { get; set; }
+        public DateTime ExpiresOn { get; set; }
+
         [JsonIgnore]
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiration { get; set; }

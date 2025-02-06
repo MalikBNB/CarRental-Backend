@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using CarRental.Authentication.Configuration;
-using CarRental.Authentication.Models;
 using CarRental.Authentication.Models.DTOs.Incoming;
 using CarRental.Authentication.Models.DTOs.Outgoing;
 using CarRental.Configuration.Messages;
@@ -10,9 +9,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
+using System.Security.Cryptography;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarRental.Authentication.Services;
 
@@ -48,15 +48,21 @@ public class AuthService : IAuthService
         var roleResult = await AddRoleAsync(new AddRoleDto { UserId = user.Id, Role = registrationDto.Role });
 
         var jwtSecurityToken = await GenerateToken(user);
-        
+
+        var refreshToken = GenerateRefreshToken();
+        user.RefreshTokens?.Add(refreshToken);
+        await _userManager.UpdateAsync(user);
+
         return new AuthModel
         {
-            Email = user.Email,
-            Username = user.UserName,
+            Email = user.Email!,
+            Username = user.UserName!,
             IsAuthenticated = true,
             Roles = new List<string> { string.IsNullOrEmpty(roleResult) ? registrationDto.Role : null! },
             Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-            //ExpiresOn = jwtSecurityToken.ValidTo
+            ExpiresOn = jwtSecurityToken.ValidTo,
+            RefreshToken = refreshToken.Token,
+            RefreshTokenExpiration = refreshToken.ExpiresOn,
         };
     }
 
@@ -82,12 +88,85 @@ public class AuthService : IAuthService
 
         authModel.IsAuthenticated = true;
         authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-        //authModel.ExpiresOn = jwtSecurityToken.ValidTo;
-        authModel.Email = user.Email;
-        authModel.Username = user.UserName;
+        authModel.ExpiresOn = jwtSecurityToken.ValidTo;
+        authModel.Email = user.Email!;
+        authModel.Username = user.UserName!;
         authModel.Roles = rolesList.ToList();
 
+        if (user.RefreshTokens!.Any())
+        {
+            var activeRefreshToken = user.RefreshTokens?.FirstOrDefault(t => t.IsActive);
+            authModel.RefreshToken = activeRefreshToken?.Token;
+            authModel.RefreshTokenExpiration = activeRefreshToken.ExpiresOn;
+        }
+        else
+        {
+            var refreshToken = GenerateRefreshToken();
+            authModel.RefreshToken = refreshToken.Token;
+            authModel.RefreshTokenExpiration = refreshToken.ExpiresOn;
+            user.RefreshTokens?.Add(refreshToken);
+            await _userManager.UpdateAsync(user);
+        }
+
         return authModel;
+    }
+
+    public async Task<AuthModel> RefreshTokenAsync(string token)
+    {
+        var authModel = new AuthModel();
+
+        var user = await _userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens!.Any(t => t.Token == token));
+        if (user is null)
+        {
+            authModel.IsAuthenticated = false;
+            authModel.Errors = new List<string> { ErrorMessages.Generic.InvalidPayload };
+
+            return authModel;
+        }
+
+        var refreshToken = user.RefreshTokens!.Single(t => t.Token == token);
+        if (!refreshToken.IsActive)
+        {
+            authModel.IsAuthenticated = false;
+            authModel.Errors = new List<string> { ErrorMessages.Generic.InvalidPayload };
+
+            return authModel;
+        }
+
+        refreshToken.RevokedOn = DateTime.UtcNow;
+
+        var newRefreshToken = GenerateRefreshToken();
+        user.RefreshTokens?.Add(newRefreshToken);
+        await _userManager.UpdateAsync(user);
+
+        var jwtToken = await GenerateToken(user);
+
+        authModel.IsAuthenticated = true;
+        authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+        authModel.Email = user.Email!;
+        authModel.Username = user.UserName!;
+        var roles = await _userManager.GetRolesAsync(user);
+        authModel.Roles = roles.ToList();
+        authModel.RefreshToken = newRefreshToken.Token;
+        authModel.RefreshTokenExpiration = newRefreshToken.ExpiresOn;
+
+        return authModel;
+    }
+
+    public async Task<bool> RevokeTokenAsync(string token)
+    {
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));   
+        if(user is null)
+            return false;
+
+        var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
+        if(!refreshToken.IsActive)
+            return false;
+
+        refreshToken.RevokedOn = DateTime.UtcNow;   
+        await _userManager.UpdateAsync(user);
+
+        return true;
     }
 
     public async Task<string> AddRoleAsync(AddRoleDto roleDto)
@@ -115,9 +194,9 @@ public class AuthService : IAuthService
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+            new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim("uid", user.Id)
         }
         .Union(userClaims)
@@ -131,12 +210,21 @@ public class AuthService : IAuthService
             issuer: _jwtConfig.Issuer,
             audience: _jwtConfig.Audience,
             claims: claims,
-            expires: DateTime.Now.AddDays(_jwtConfig.DurationInDays),
+            //expires: DateTime.Now.AddDays(_jwtConfig.DurationInDays),
+            expires: DateTime.Now.AddMinutes(_jwtConfig.DurationInMinutes),
             signingCredentials: signingCredentials
         );
 
         return jwtSecurityToken;
     }
 
-
+    private RefreshToken GenerateRefreshToken()
+    {
+        return new RefreshToken
+        {
+            Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),
+            ExpiresOn = DateTime.UtcNow.AddDays(10),
+            CreatedOn = DateTime.UtcNow,
+        };
+    }
 }

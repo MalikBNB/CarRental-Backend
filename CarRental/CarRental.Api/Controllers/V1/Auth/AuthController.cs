@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using CarRental.Authentication.Models.DTOs.Incoming;
 using CarRental.Authentication.Services;
-using CarRental.Entities.Global;
+using CarRental.Entities.DTOs.Incoming;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CarRental.Api.Controllers.V1.Auth;
 [Route("api/[controller]")]
@@ -25,25 +26,45 @@ public class AuthController : ControllerBase
 
         var result = await _authService.RegisterAsync(registrationDto);
 
-        if(!result.IsAuthenticated) 
+        if (!result.IsAuthenticated)
             return BadRequest(result);
+
+        SetRefreshTokenInCookie(result.RefreshToken!, result.RefreshTokenExpiration);
 
         return Ok(result);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> LoginAsync([FromBody]LoginRequestDto loginDto)
+    public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto loginDto)
     {
         var result = await _authService.LoginAsync(loginDto);
 
         if (!result.IsAuthenticated)
             return BadRequest(result);
 
+        if (!string.IsNullOrEmpty(result.RefreshToken))
+            SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+
         return Ok(result);
     }
 
-    [HttpPost("add-role")]
-    [Authorize(Roles = AppRoles.Admin)]
+    [HttpGet("refresh-token")]
+    public async Task<IActionResult> RefreshToken()
+    {
+        var refreshToken = Request.Cookies["refreshToken"];
+
+        var result = await _authService.RefreshTokenAsync(refreshToken);
+
+        if (!result.IsAuthenticated)
+            return BadRequest(result);
+
+        SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+
+        return Ok(result);
+    }
+
+    [HttpPost("role")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddRoleAsync([FromBody]AddRoleDto roleDto)
     {
         if (!ModelState.IsValid)
@@ -51,9 +72,20 @@ public class AuthController : ControllerBase
 
         var result = await _authService.AddRoleAsync(roleDto);
 
-        if(!string.IsNullOrEmpty(result))
+        if (!string.IsNullOrEmpty(result))
             return BadRequest(result);
 
         return Ok(roleDto);
+    }
+
+    private void SetRefreshTokenInCookie(string refreshToken, DateTime expires)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = expires.ToLocalTime(),
+        };
+
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
 }

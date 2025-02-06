@@ -7,5 +7,7 @@ public interface IAuthService
 {
     Task<AuthModel> RegisterAsync(RegistrationRequestDto registrationDto);
     Task<AuthModel> LoginAsync(LoginRequestDto loginDto);
+    Task<AuthModel> RefreshTokenAsync(string token);
+    Task<bool> RevokeTokenAsync(string token);
     Task<string> AddRoleAsync(AddRoleDto roleDto);
 }
