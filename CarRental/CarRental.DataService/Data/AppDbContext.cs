@@ -17,6 +17,8 @@ namespace CarRental.DataService.Data
             
         }
 
+        //public DbSet<Vehicle> vehicles { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

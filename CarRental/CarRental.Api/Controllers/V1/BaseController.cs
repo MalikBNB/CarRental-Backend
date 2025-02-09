@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using CarRental.DataService.Data;
+using CarRental.DataService.IConfiguration;
 using CarRental.Entities.DbSets;
-using Microsoft.AspNetCore.Http;
+using CarRental.Entities.Global;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,12 +11,24 @@ namespace CarRental.Api.Controllers.V1;
 [ApiController]
 public class BaseController : ControllerBase
 {
-    public UserManager<User> _userManager;
+    public readonly IUnitOfWork _unitOfWork;
+    public readonly UserManager<User> _userManager;
     public readonly IMapper _mapper;
 
-    public BaseController(UserManager<User> userManager, IMapper mapper)
+    public BaseController(IUnitOfWork unitOfWork, UserManager<User> userManager, IMapper mapper)
     {
+        _unitOfWork = unitOfWork;
         _userManager = userManager;
         _mapper = mapper;
+    }
+
+    internal Error PopulateError(int code, string type, string message)
+    {
+        return new Error
+        {
+            Code = code,
+            Type = type,
+            Message = message
+        };
     }
 }

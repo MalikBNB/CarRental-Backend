@@ -2,6 +2,8 @@ using System.Text;
 using CarRental.Authentication.Configuration;
 using CarRental.Authentication.Services;
 using CarRental.DataService.Data;
+using CarRental.DataService.IConfiguration;
+using CarRental.DataService.Sercices.ProfileManagement;
 using CarRental.Entities.DbSets;
 using CarRental.Entities.Global;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -56,7 +58,11 @@ builder.Services.AddIdentityCore<User>()
 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection(JwtConfig.SectionName));
 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();  
+
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddScoped<IProfilesManager, ProfilesManager>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -84,24 +90,23 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-#region Add Application Roles
+#region Seeding Application Roles
 
-using (var serviceScope = app.Services.CreateScope())
-{
-    var services = serviceScope.ServiceProvider;
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+using var serviceScope = app.Services.CreateScope();
 
-    if (!await roleManager.RoleExistsAsync(AppRoles.Admin))
-        await roleManager.CreateAsync(new IdentityRole(AppRoles.Admin));
+var services = serviceScope.ServiceProvider;
+var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-    if (!await roleManager.RoleExistsAsync(AppRoles.User))
-        await roleManager.CreateAsync(new IdentityRole(AppRoles.User));
+if (!await roleManager.RoleExistsAsync(AppRoles.Admin))
+    await roleManager.CreateAsync(new IdentityRole(AppRoles.Admin));
 
-    if (!await roleManager.RoleExistsAsync(AppRoles.Customer))
-        await roleManager.CreateAsync(new IdentityRole(AppRoles.Customer));
-}
+if (!await roleManager.RoleExistsAsync(AppRoles.User))
+    await roleManager.CreateAsync(new IdentityRole(AppRoles.User));
 
-#endregion Add Application Roles
+if (!await roleManager.RoleExistsAsync(AppRoles.Customer))
+    await roleManager.CreateAsync(new IdentityRole(AppRoles.Customer));
+
+#endregion Seeding Application Roles
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

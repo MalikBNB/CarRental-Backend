@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CarRental.Authentication.Models.DTOs.Incoming;
-public class AddRoleDto
+public class AssignRoleDto
 {
     [Required]
     public string UserId { get; set; } = string.Empty;
