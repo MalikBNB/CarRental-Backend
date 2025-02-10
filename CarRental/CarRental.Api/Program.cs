@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Formatting.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +47,29 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+#region Adding Serilog
+
+builder.Logging.ClearProviders(); //  clear the default logging providers
+
+/*
+    --> The WriteTo.File method is used to configure the Serilog.Sinks.File sink. 
+    It will write log messages to a file named log.txt in the logs folder.
+    
+    --> The rollingInterval parameter is used to specify the rolling interval. 
+    Here, we set it up as daily (create a log file per day).
+    
+    --> The retainedFileCountLimit parameter is used to specify the maximum number 
+    of log files to keep. Here, we have kept the number of files to 90.
+    Old files will be cleaned up as per retainedFileCountLimit - the default is 31.
+ */
+var logger = new LoggerConfiguration().WriteTo.File(new JsonFormatter(), 
+                                                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs/log.txt"),
+                                                    rollingInterval: RollingInterval.Day, retainedFileCountLimit: 90).CreateLogger();
+
+builder.Logging.AddSerilog(logger);
+
+#endregion Adding Serilog
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
