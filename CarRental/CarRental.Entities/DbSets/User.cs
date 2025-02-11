@@ -34,7 +34,7 @@ namespace CarRental.Entities.DbSets
         public DateTime Modified { get; set; }
 
         public List<RefreshToken>? RefreshTokens { get; set; }
+        public List<RentalBooking>? RentalBookings { get; set; }
 
-       
     }
 }

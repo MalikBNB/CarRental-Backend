@@ -14,10 +14,15 @@ namespace CarRental.DataService.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-            
+
         }
 
-        //public DbSet<Vehicle> vehicles { get; set; }
+        public virtual DbSet<Vehicle> Vehicles { get; set; }
+        public virtual DbSet<Maintenance> Maintenances { get; set; }
+        public virtual DbSet<CarCategory> CarCategories { get; set; }
+        public virtual DbSet<VehicleReturn> VehicleReturns { get; set; }
+        public virtual DbSet<RentalBooking> RentalBookings { get; set; }
+        public virtual DbSet<RentalTransaction> RentalTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -30,6 +35,41 @@ namespace CarRental.DataService.Data
             builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins", "security");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "security");
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "security");
+
+            builder.Entity<Vehicle>()
+                   .HasMany(o => o.Maintenances)
+                   .WithOne(o => o.Vehicle)
+                   .HasForeignKey(o => o.VehicleId).IsRequired();
+
+            builder.Entity<Vehicle>()
+                .HasMany(o => o.RentalBookings)
+                .WithOne(o => o.Vehicle)
+                .HasForeignKey(o => o.VehicleId).IsRequired();
+
+            builder.Entity<Vehicle>()
+                .HasOne(o => o.CarCategory)
+                .WithMany(o => o.Vehicles)
+                .HasForeignKey(o => o.CarCategoryId).IsRequired();
+
+            builder.Entity<RentalBooking>()
+                .HasOne(o => o.Customer)
+                .WithMany(o => o.RentalBookings)
+                .HasForeignKey(o => o.CustomerId)
+                .IsRequired();
+
+            builder.Entity<RentalBooking>()
+                .HasOne(o => o.RentalTransaction)
+                .WithOne(o => o.RentalBooking)
+                .HasForeignKey<RentalBooking>(o => o.RentalTransactionId)
+                .IsRequired();
+            builder.Entity<RentalBooking>().HasIndex(o => o.RentalTransactionId).IsUnique();
+
+            builder.Entity<VehicleReturn>()
+                .HasOne(o => o.RentalTransaction)
+                .WithOne(o => o.VehicleReturn)
+                .HasForeignKey<VehicleReturn>(o => o.RentalTransactionId)
+                .IsRequired();
+            builder.Entity<VehicleReturn>().HasIndex(o => o.RentalTransactionId).IsUnique();
         }
     }
 }
