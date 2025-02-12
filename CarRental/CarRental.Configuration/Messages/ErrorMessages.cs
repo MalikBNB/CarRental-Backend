@@ -45,4 +45,9 @@ public static class ErrorMessages
         public static string AlreadyAssigned = "User already assigned to this role";
 
     }
+
+    public static class CarCategory
+    {
+        public static string CategoryAlreadyExists = "Category already exists!";
+    }
 }

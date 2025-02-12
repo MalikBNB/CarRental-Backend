@@ -15,10 +15,10 @@ namespace CarRental.Entities.DbSets
         public virtual CarCategory CarCategory { get; set; } = null!;
         public decimal RentalPricePerDay { get; set; }
         public bool IsAvailableForRent { get; set; }
-        public byte Status { get; set; }
-        public string CreatorId { get; set; } = string.Empty;
+        public byte Status { get; set; } = 1;
+        public string Creator { get; set; } = string.Empty;
         public DateTime Created { get; set; }
-        public string ModifierId { get; set; } = string.Empty;
+        public string Modifier { get; set; } = string.Empty;
         public DateTime Modified { get; set; }
 
         public List<Maintenance>? Maintenances { get; set; }

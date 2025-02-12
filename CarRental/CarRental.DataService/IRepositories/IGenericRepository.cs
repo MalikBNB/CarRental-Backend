@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CarRental.Entities.DbSets;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,8 +15,8 @@ namespace CarRental.DataService.IRepositories
         Task<T> FindAsync(Expression<Func<T, bool>> criteria, string[] includes = null!);
         Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, string[] includes = null!);
         Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int take, int skip);
-        Task<bool> AddAsync(T entity);
-        bool Update(T entity);
+        Task<bool> AddAsync(T entity, User user);
+        bool Update(T entity, User user);
         bool Delete(T entity);
     }
 }

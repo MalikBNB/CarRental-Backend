@@ -7,9 +7,10 @@ using CarRental.DataService.IRepositories;
 
 namespace CarRental.DataService.IConfiguration
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork
     {
-
+        IVehiclesRepository Vehicles { get; }
+        ICarCategoriesRepository CarCategories { get; }
 
         Task CompleteAsync();
     }

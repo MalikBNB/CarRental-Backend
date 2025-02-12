@@ -1,18 +1,25 @@
 ﻿using CarRental.DataService.IConfiguration;
 using CarRental.DataService.IRepositories;
+using CarRental.DataService.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace CarRental.DataService.Data
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly AppDbContext _context;
-        private readonly ILogger _logger;
+        //private readonly ILogger _logger;
 
-        public UnitOfWork(AppDbContext context, ILoggerFactory loggerFactory)
+        public IVehiclesRepository Vehicles {  get; private set; }  
+        public ICarCategoriesRepository CarCategories { get; private set; }
+
+        public UnitOfWork(AppDbContext context)//, ILoggerFactory loggerFactory)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger("db_logs");
+            //_logger = loggerFactory.CreateLogger("db_logs");
+
+            Vehicles = new VehiclesRepository(context);
+            CarCategories = new CarCategoriesRepository(context);
         }
 
 
