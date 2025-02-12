@@ -1,5 +1,6 @@
 ﻿using CarRental.Authentication.Models.DTOs.Incoming;
 using CarRental.Authentication.Services;
+using CarRental.Configuration.Messages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,9 +61,24 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("revoke-token")]
+    public async Task<IActionResult> RevokeToken([FromBody] RevokeToken dto)
+    {
+        var token = dto.Token ?? Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(token))
+            return BadRequest(ErrorMessages.Login.TokenIsRequired);
+
+        var result = await _authService.RevokeTokenAsync(token);
+
+        if (!result)
+            return BadRequest(ErrorMessages.Login.InvalidToken);
+
+        return Ok();
+    }
+
     [HttpPost("role")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AsignRoleAsync([FromBody]AssignRoleDto roleDto)
+    public async Task<IActionResult> AsignRoleAsync([FromBody] AssignRoleDto roleDto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);

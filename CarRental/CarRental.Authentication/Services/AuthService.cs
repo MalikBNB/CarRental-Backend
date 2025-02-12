@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using CarRental.Entities.Global;
 
 namespace CarRental.Authentication.Services;
 
@@ -49,7 +50,7 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             return new AuthModel { Errors = result.Errors.Select(e => e.Description).ToList() };
 
-        if (string.IsNullOrEmpty(registrationDto.Role)) registrationDto.Role = "User";
+        if (string.IsNullOrEmpty(registrationDto.Role)) registrationDto.Role = AppRoles.User;
 
         var roleResult = await AssignRoleAsync(new AssignRoleDto { UserId = user.Id, Role = registrationDto.Role });
 
@@ -99,11 +100,11 @@ public class AuthService : IAuthService
         authModel.Username = user.UserName!;
         authModel.Roles = rolesList.ToList();
 
-        if (user.RefreshTokens!.Any())
+        if (user.RefreshTokens!.Any(rt => rt.IsActive))
         {
             var activeRefreshToken = user.RefreshTokens?.FirstOrDefault(t => t.IsActive);
             authModel.RefreshToken = activeRefreshToken?.Token;
-            authModel.RefreshTokenExpiration = activeRefreshToken.ExpiresOn;
+            authModel.RefreshTokenExpiration = activeRefreshToken!.ExpiresOn;
         }
         else
         {
@@ -159,7 +160,6 @@ public class AuthService : IAuthService
             issuer: _jwtConfig.Issuer,
             audience: _jwtConfig.Audience,
             claims: claims,
-            //expires: DateTime.Now.AddDays(_jwtConfig.DurationInDays),
             expires: DateTime.Now.AddMinutes(_jwtConfig.DurationInMinutes),
             signingCredentials: signingCredentials
         );
@@ -172,8 +172,8 @@ public class AuthService : IAuthService
         return new RefreshToken
         {
             Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),
-            ExpiresOn = DateTime.UtcNow.AddDays(10),
-            CreatedOn = DateTime.UtcNow,
+            ExpiresOn = DateTime.Now.AddDays(10),
+            CreatedOn = DateTime.Now,
         };
     }
 
@@ -185,7 +185,7 @@ public class AuthService : IAuthService
         if (user is null)
         {
             authModel.IsAuthenticated = false;
-            authModel.Errors = new List<string> { ErrorMessages.Generic.InvalidPayload };
+            authModel.Errors = new List<string> { ErrorMessages.User.UserNotFound };
 
             return authModel;
         }
@@ -194,7 +194,7 @@ public class AuthService : IAuthService
         if (!refreshToken.IsActive)
         {
             authModel.IsAuthenticated = false;
-            authModel.Errors = new List<string> { ErrorMessages.Generic.InvalidPayload };
+            authModel.Errors = new List<string> { ErrorMessages.Login.InvalidToken };
 
             return authModel;
         }

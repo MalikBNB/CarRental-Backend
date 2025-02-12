@@ -34,6 +34,8 @@ public static class ErrorMessages
     {
         public static string InvalidAuthentication = "Invalid authentication request.";
         public static string InvalidUsernameOrPassword = "Invalid username or password.";
+        public static string InvalidToken = "Invalid token!";
+        public static string TokenIsRequired = "Token is required!";
 
     }
     
