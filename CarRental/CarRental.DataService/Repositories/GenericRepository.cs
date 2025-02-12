@@ -26,28 +26,49 @@ namespace CarRental.DataService.Repositories
             dbSet = context.Set<T>();
         }
 
-        public virtual async Task<bool> AddAsync(T entity, User user)
+        public virtual async Task<bool> AddAsync(T entity)
         {
-            return await dbSet.AddAsync(entity) is not null;
+            try 
+            { 
+                return await dbSet.AddAsync(entity) is not null; 
+            } 
+            catch (Exception) 
+            { 
+                return false;
+            }
         }
-        public virtual bool Update(T entity, User user)
+        public virtual bool Update(T entity)
         {
-            return dbSet.Update(entity) is not null;
+            try
+            {
+                return dbSet.Update(entity) is not null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public virtual bool Delete(T entity)
         {
-            return dbSet.Remove(entity) is not null;
+            try
+            {
+                return dbSet.Remove(entity) is not null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, string[] includes = null!)
         {
-            return await GenerateQuery(includes).Where(criteria).ToListAsync();
+            return await GenerateQuery(includes).Where(criteria).AsNoTracking().ToListAsync();
         }
 
         public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int take, int skip)
         {
-            return await dbSet.Where(criteria).Skip(skip).Take(take).ToListAsync();
+            return await dbSet.Where(criteria).AsNoTracking().Skip(skip).Take(take).ToListAsync();
         }
 
         public virtual async Task<T> FindAsync(Guid id)
@@ -57,12 +78,12 @@ namespace CarRental.DataService.Repositories
 
         public virtual async Task<T> FindAsync(Expression<Func<T, bool>> criteria, string[] includes = null!)
         {
-            return await GenerateQuery(includes).SingleOrDefaultAsync(criteria) ?? null!;
+            return await GenerateQuery(includes).AsNoTracking().SingleOrDefaultAsync(criteria) ?? null!;
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await dbSet.ToListAsync();
+            return await dbSet.AsNoTracking().ToListAsync();
         }
 
         private IQueryable<T> GenerateQuery(string[] includes)

@@ -15,8 +15,8 @@ namespace CarRental.DataService.IRepositories
         Task<T> FindAsync(Expression<Func<T, bool>> criteria, string[] includes = null!);
         Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, string[] includes = null!);
         Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int take, int skip);
-        Task<bool> AddAsync(T entity, User user);
-        bool Update(T entity, User user);
+        Task<bool> AddAsync(T entity);
+        bool Update(T entity);
         bool Delete(T entity);
     }
 }

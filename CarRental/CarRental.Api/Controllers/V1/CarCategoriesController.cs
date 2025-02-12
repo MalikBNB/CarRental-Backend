@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using AutoMapper;
 using CarRental.Configuration.Messages;
 using CarRental.DataService.Data;
 using CarRental.DataService.IConfiguration;
@@ -25,21 +26,24 @@ public class CarCategoriesController : BaseController
     public async Task<IActionResult> GetAllAsync()
     {
         var pagedResult = new PagedResult<CarCategoryResponseDto>();
+        pagedResult.Content = new List<CarCategoryResponseDto>();
 
         var carCategories = await _unitOfWork.CarCategories.GetAllAsync();
 
         foreach (var carCategory in carCategories)
             pagedResult.Content.Add(_mapper.Map<CarCategoryResponseDto>(carCategory));
 
+        pagedResult.ResultCount = pagedResult.Content.Count;
+
         return Ok(pagedResult);
     }
 
-    [HttpGet("/{id}")]
-    public async Task<IActionResult> FindAsync([FromQuery]string id)
+    [HttpGet("{id}", Name = "FindAsync")]
+    public async Task<IActionResult> FindAsync(Guid id)
     {
         var result = new Result<CarCategoryResponseDto>();
 
-        var carCategory = await _unitOfWork.CarCategories.FindAsync(o => o.Id == new Guid(id));
+        var carCategory = await _unitOfWork.CarCategories.FindAsync(o => o.Id == id);
         if (carCategory is null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
@@ -52,7 +56,7 @@ public class CarCategoriesController : BaseController
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> AddAsync([FromBody] CarCategoryRequestDto dto)
     {
         if (!ModelState.IsValid)
@@ -60,26 +64,91 @@ public class CarCategoriesController : BaseController
 
         var result = new Result<CarCategoryResponseDto>();
 
-        if(await _unitOfWork.CarCategories.IsCategoryExits(dto.CategoryName.Trim()))
+        if (await _unitOfWork.CarCategories.IsCategoryExits(dto.CategoryName.Trim()))
         {
             result.Error = PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.CarCategory.CategoryAlreadyExists);
             return BadRequest(result);
         }
 
         var loggedInUser = await _userManager.GetUserAsync(HttpContext.User);
-        if(loggedInUser is null)
+        if (loggedInUser is null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound);
             return NotFound(result);
         }
 
         var carCategory = _mapper.Map<CarCategory>(dto);
+        carCategory.Creator = loggedInUser.UserName!;
+        carCategory.Created = DateTime.Now;
+        carCategory.Modifier = loggedInUser.UserName!;
+        carCategory.Modified = DateTime.Now;
 
-        await _unitOfWork.CarCategories.AddAsync(carCategory, loggedInUser);
+        var isAdded = await _unitOfWork.CarCategories.AddAsync(carCategory);
+        if (!isAdded)
+        {
+            result.Error = PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.Generic.SomethingWentWrong);
+            return BadRequest(result);
+        }
+
         await _unitOfWork.CompleteAsync();
 
         result.Content = _mapper.Map<CarCategoryResponseDto>(carCategory);
 
-        return CreatedAtRoute("FindAsync", new {carCategory.Id}, result);
+        return CreatedAtRoute("FindAsync", new { carCategory.Id }, result);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
+    public async Task<IActionResult> UpdateAsync(Guid id, CarCategoryRequestDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var loggedInUser = await _userManager.GetUserAsync(HttpContext.User);
+
+        if (loggedInUser is null)
+            return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound));
+
+        var carCategory = await _unitOfWork.CarCategories.FindAsync(id);
+
+        if (carCategory is null)
+            return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound));
+
+        carCategory.CategoryName = dto.CategoryName;
+        carCategory.Modifier = loggedInUser.UserName!;
+        carCategory.Modified = DateTime.Now;
+
+        var isUpdated = _unitOfWork.CarCategories.Update(carCategory);
+
+        if (!isUpdated)
+            return BadRequest(PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.Generic.SomethingWentWrong));
+
+        await _unitOfWork.CompleteAsync();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
+    public async Task<IActionResult> DeleteAsync(Guid id)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        //-- Here EF Core generates two SQL statements (Find, Delete), which seems a little bit unnecessary to find the entity first then delete it.
+        //var carCategory = await _unitOfWork.CarCategories.FindAsync(id);
+        //if (carCategory is null)
+        //    return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound));
+
+        //-- But When we delete an entity, the only thing we need is the primary key. So, we can do this.
+        var carCategory = new CarCategory { Id = id };
+
+        var isDeleted = _unitOfWork.CarCategories.Delete(carCategory);
+        if (!isDeleted)
+            return BadRequest(PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.Generic.SomethingWentWrong));
+
+        await _unitOfWork.CompleteAsync();
+
+        return NoContent();
     }
 }
