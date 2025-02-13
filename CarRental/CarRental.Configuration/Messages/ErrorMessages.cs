@@ -50,4 +50,9 @@ public static class ErrorMessages
     {
         public static string CategoryAlreadyExists = "Category already exists!";
     }
+    
+    public static class Vehicle
+    {
+        public static string VehicleAlreadyExists = "Vehicle already exists!";
+    }
 }

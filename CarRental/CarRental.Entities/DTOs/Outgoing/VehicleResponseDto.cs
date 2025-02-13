@@ -15,6 +15,7 @@ public class VehicleResponseDto
     public int Mileage { get; set; }
     public FuelType FuelType { get; set; }
     public string PlateNumber { get; set; } = string.Empty;
+    //public CarCategoryResponseDto CarCategory { get; set; } = null!;
     public string CarCategory { get; set; } = string.Empty;
     public decimal RentalPricePerDay { get; set; }
     public bool IsAvailableForRent { get; set; }
@@ -24,6 +25,6 @@ public class VehicleResponseDto
     public string Modifier { get; set; } = string.Empty;
     public DateTime Modified { get; set; }
 
-    public List<Maintenance>? Maintenances { get; set; }
-    public List<RentalBooking>? RentalBookings { get; set; }
+    //public List<MaintenanceResponseDto>? Maintenances { get; set; }
+    //public List<RentalBookingResponseDto>? RentalBookings { get; set; }
 }

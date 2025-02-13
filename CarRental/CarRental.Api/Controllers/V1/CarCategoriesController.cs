@@ -38,7 +38,7 @@ public class CarCategoriesController : BaseController
         return Ok(pagedResult);
     }
 
-    [HttpGet("{id}", Name = "FindAsync")]
+    [HttpGet("{id}", Name = "find-category"), Route("[controller]/FindAsync")]
     public async Task<IActionResult> FindAsync(Guid id)
     {
         var result = new Result<CarCategoryResponseDto>();
@@ -62,7 +62,7 @@ public class CarCategoriesController : BaseController
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var result = new Result<CarCategoryResponseDto>();
+        var result = new Result<CarCategoryRequestDto>();
 
         if (await _unitOfWork.CarCategories.IsCategoryExits(dto.CategoryName.Trim()))
         {
@@ -70,7 +70,7 @@ public class CarCategoriesController : BaseController
             return BadRequest(result);
         }
 
-        var loggedInUser = await _userManager.GetUserAsync(HttpContext.User);
+        var loggedInUser = await _userManager.GetUserAsync(User);
         if (loggedInUser is null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound);
@@ -92,9 +92,9 @@ public class CarCategoriesController : BaseController
 
         await _unitOfWork.CompleteAsync();
 
-        result.Content = _mapper.Map<CarCategoryResponseDto>(carCategory);
+        result.Content = dto;
 
-        return CreatedAtRoute("FindAsync", new { carCategory.Id }, result);
+        return CreatedAtRoute("find-category", new { carCategory.Id }, result);
     }
 
     [HttpPut("{id}")]
@@ -104,8 +104,8 @@ public class CarCategoriesController : BaseController
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var loggedInUser = await _userManager.GetUserAsync(HttpContext.User);
-
+        var loggedInUser = await _userManager.GetUserAsync(User);
+        
         if (loggedInUser is null)
             return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound));
 
@@ -132,18 +132,16 @@ public class CarCategoriesController : BaseController
     [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         //-- Here EF Core generates two SQL statements (Find, Delete), which seems a little bit unnecessary to find the entity first then delete it.
         //var carCategory = await _unitOfWork.CarCategories.FindAsync(id);
         //if (carCategory is null)
         //    return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound));
 
-        //-- But When we delete an entity, the only thing we need is the primary key. So, we can do this.
-        var carCategory = new CarCategory { Id = id };
+        if(!await _unitOfWork.CarCategories.AnyAsync(c => c.Id == id))
+            return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound));
 
-        var isDeleted = _unitOfWork.CarCategories.Delete(carCategory);
+        //-- When we delete an entity, the only thing we need is the primary key. So, we can do this.
+        var isDeleted = _unitOfWork.CarCategories.Delete(new CarCategory { Id = id });
         if (!isDeleted)
             return BadRequest(PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.Generic.SomethingWentWrong));
 

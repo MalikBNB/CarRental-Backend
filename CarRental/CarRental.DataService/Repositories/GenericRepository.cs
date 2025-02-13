@@ -26,6 +26,12 @@ namespace CarRental.DataService.Repositories
             dbSet = context.Set<T>();
         }
 
+
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> criteria)
+        {
+            return await dbSet.AnyAsync(criteria);
+        }
+
         public virtual async Task<bool> AddAsync(T entity)
         {
             try 
@@ -37,6 +43,7 @@ namespace CarRental.DataService.Repositories
                 return false;
             }
         }
+
         public virtual bool Update(T entity)
         {
             try
@@ -66,11 +73,11 @@ namespace CarRental.DataService.Repositories
             return await GenerateQuery(includes).Where(criteria).AsNoTracking().ToListAsync();
         }
 
-        public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int take, int skip)
+        public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int skip, int take)
         {
             return await dbSet.Where(criteria).AsNoTracking().Skip(skip).Take(take).ToListAsync();
         }
-
+        
         public virtual async Task<T> FindAsync(Guid id)
         {
             return await dbSet.FindAsync(id) ?? null!;
@@ -96,5 +103,6 @@ namespace CarRental.DataService.Repositories
 
             return query;
         }
+
     }
 }
