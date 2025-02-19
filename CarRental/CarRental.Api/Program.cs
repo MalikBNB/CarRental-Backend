@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using CarRental.Authentication.Configuration;
 using CarRental.Authentication.Services;
 using CarRental.DataService.Data;
@@ -18,7 +19,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    // To avoid object cycle Exception
+                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -63,7 +69,7 @@ builder.Logging.ClearProviders(); //  clear the default logging providers
     of log files to keep. Here, we have kept the number of files to 90.
     Old files will be cleaned up as per retainedFileCountLimit - the default is 31.
  */
-var logger = new LoggerConfiguration().WriteTo.File(new JsonFormatter(), 
+var logger = new LoggerConfiguration().WriteTo.File(new JsonFormatter(),
                                                     Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs/log.txt"),
                                                     rollingInterval: RollingInterval.Day, retainedFileCountLimit: 90).CreateLogger();
 
@@ -83,7 +89,7 @@ builder.Services.AddIdentityCore<User>()
 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection(JwtConfig.SectionName));
 
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();  
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 

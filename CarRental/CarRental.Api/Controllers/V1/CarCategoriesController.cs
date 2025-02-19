@@ -38,6 +38,29 @@ public class CarCategoriesController : BaseController
         return Ok(pagedResult);
     }
 
+    [HttpGet("page/{page}-{pageSize}"), Route("[controller]/FindAllAsync")]
+    public async Task<IActionResult> FindAllAsync(int page, int pageSize)
+    {
+        var pagedResult = new PagedResult<CarCategoryResponseDto>();
+        pagedResult.Content = new List<CarCategoryResponseDto>();
+
+        var categories = await _unitOfWork.CarCategories.GetAllAsync((page - 1) * pageSize, pageSize, ["Vehicles"]);
+        if (!categories.Any())
+        {
+            return NotFound(pagedResult);
+        }
+
+        foreach (var category in categories)
+            pagedResult.Content.Add(_mapper.Map<CarCategoryResponseDto>(category));
+
+        pagedResult.Page = page;
+        pagedResult.PageSize = pageSize;
+        pagedResult.ResultCount = pagedResult.Content.Count;
+
+        return Ok(pagedResult);
+    }
+
+
     [HttpGet("{id}", Name = "find-category"), Route("[controller]/FindAsync")]
     public async Task<IActionResult> FindAsync(Guid id)
     {

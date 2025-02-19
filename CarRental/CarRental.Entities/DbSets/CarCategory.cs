@@ -16,7 +16,7 @@ namespace CarRental.Entities.DbSets
         public string Modifier { get; set; } = string.Empty;
         public DateTime Modified { get; set; }
 
-        public List<Vehicle>? Vehicles { get; set; } = new List<Vehicle>();
+        public List<Vehicle>? Vehicles { get; set; } = new();
 
         //public User Creator { get; set; } = null!;
         //public User Modifier { get; set; } = null!;

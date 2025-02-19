@@ -15,7 +15,6 @@ public class VehicleResponseDto
     public int Mileage { get; set; }
     public FuelType FuelType { get; set; }
     public string PlateNumber { get; set; } = string.Empty;
-    //public CarCategoryResponseDto CarCategory { get; set; } = null!;
     public string CarCategory { get; set; } = string.Empty;
     public decimal RentalPricePerDay { get; set; }
     public bool IsAvailableForRent { get; set; }

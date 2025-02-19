@@ -73,9 +73,9 @@ namespace CarRental.DataService.Repositories
             return await GenerateQuery(includes).Where(criteria).AsNoTracking().ToListAsync();
         }
 
-        public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int skip, int take)
+        public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int skip, int take, string[] includes = null!)
         {
-            return await dbSet.Where(criteria).AsNoTracking().Skip(skip).Take(take).ToListAsync();
+            return await GenerateQuery(includes).Where(criteria).AsNoTracking().Skip(skip).Take(take).ToListAsync();
         }
         
         public virtual async Task<T> FindAsync(Guid id)
@@ -88,9 +88,14 @@ namespace CarRental.DataService.Repositories
             return await GenerateQuery(includes).AsNoTracking().SingleOrDefaultAsync(criteria) ?? null!;
         }
 
-        public virtual async Task<IEnumerable<T>> GetAllAsync()
+        public virtual async Task<IEnumerable<T>> GetAllAsync(string[] includes = null!)
         {
-            return await dbSet.AsNoTracking().ToListAsync();
+            return await GenerateQuery(includes).AsNoTracking().ToListAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync(int skip, int take, string[] includes = null!)
+        {
+            return await GenerateQuery(includes).Skip(skip).Take(take).AsNoTracking().ToListAsync();
         }
 
         private IQueryable<T> GenerateQuery(string[] includes)
@@ -104,5 +109,6 @@ namespace CarRental.DataService.Repositories
             return query;
         }
 
+        
     }
 }

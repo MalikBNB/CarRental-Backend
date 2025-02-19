@@ -15,7 +15,7 @@ namespace CarRental.Entities.DbSets
         public Guid VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; } = null!;
         public Guid RentalTransactionId { get; set; }
-        public virtual RentalTransaction RentalTransaction { get; set; } = null!;
+        public virtual RentalTransaction? RentalTransaction { get; set; } = null!;
         public DateTime RentalStartDate { get; set; }
         public DateTime RentalEndDate { get; set; }
         public string PickupLocation { get; set; } = string.Empty;

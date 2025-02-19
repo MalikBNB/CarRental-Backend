@@ -26,7 +26,7 @@ public class VehiclesController : BaseController
         var pagedResult = new PagedResult<VehicleResponseDto>();
         pagedResult.Content = new List<VehicleResponseDto>();
 
-        var vehicles = await _unitOfWork.Vehicles.GetAllAsync();
+        var vehicles = await _unitOfWork.Vehicles.GetAllAsync(["CarCategory"]);
         if (!vehicles.Any())
         {
             return NotFound(pagedResult);
@@ -47,7 +47,7 @@ public class VehiclesController : BaseController
         var pagedResult = new PagedResult<VehicleResponseDto>();
         pagedResult.Content = new List<VehicleResponseDto>();
 
-        var vehicles = await _unitOfWork.Vehicles.FindAllAsync(v => v.Status == 1, (page - 1) * pageSize, pageSize);
+        var vehicles = await _unitOfWork.Vehicles.FindAllAsync(v => v.Status == 1, (page - 1) * pageSize, pageSize, ["CarCategory"]);
         if (!vehicles.Any())
         {
             return NotFound(pagedResult);

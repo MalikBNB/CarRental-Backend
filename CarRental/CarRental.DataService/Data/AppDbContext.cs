@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CarRental.Entities.DbSets;
+﻿using CarRental.Entities.DbSets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -36,40 +31,47 @@ namespace CarRental.DataService.Data
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens", "security");
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims", "security");
 
-            builder.Entity<Vehicle>()
-                   .HasMany(o => o.Maintenances)
-                   .WithOne(o => o.Vehicle)
-                   .HasForeignKey(o => o.VehicleId).IsRequired();
-
-            builder.Entity<Vehicle>()
-                .HasMany(o => o.RentalBookings)
-                .WithOne(o => o.Vehicle)
-                .HasForeignKey(o => o.VehicleId).IsRequired();
-
-            builder.Entity<Vehicle>()
-                .HasOne(o => o.CarCategory)
-                .WithMany(o => o.Vehicles)
-                .HasForeignKey(o => o.CarCategoryId).IsRequired();
+            // One-To-Many Relationships
+            builder.Entity<Maintenance>()
+                   .HasOne(o => o.Vehicle)
+                   .WithMany(o => o.Maintenances)
+                   .HasForeignKey(o => o.VehicleId)
+                   .IsRequired()
+                   .OnDelete(DeleteBehavior.ClientCascade);
 
             builder.Entity<RentalBooking>()
-                .HasOne(o => o.Customer)
-                .WithMany(o => o.RentalBookings)
-                .HasForeignKey(o => o.CustomerId)
-                .IsRequired();
+                   .HasOne(o => o.Vehicle)
+                   .WithMany(o => o.RentalBookings)
+                   .HasForeignKey(o => o.VehicleId)
+                   .IsRequired()
+                   .OnDelete(DeleteBehavior.ClientCascade);
+
+            builder.Entity<Vehicle>()
+                   .HasOne(o => o.CarCategory)
+                   .WithMany(o => o.Vehicles)
+                   .HasForeignKey(o => o.CarCategoryId)
+                   .IsRequired()
+                   .OnDelete(DeleteBehavior.ClientSetNull);
 
             builder.Entity<RentalBooking>()
-                .HasOne(o => o.RentalTransaction)
-                .WithOne(o => o.RentalBooking)
-                .HasForeignKey<RentalBooking>(o => o.RentalTransactionId)
-                .IsRequired();
-            builder.Entity<RentalBooking>().HasIndex(o => o.RentalTransactionId).IsUnique();
+                   .HasOne(o => o.Customer)
+                   .WithMany(o => o.RentalBookings)
+                   .HasForeignKey(o => o.CustomerId)
+                   .IsRequired()
+                   .OnDelete(DeleteBehavior.ClientCascade);
+
+            // One-To-One Relationships 
+            builder.Entity<RentalTransaction>()
+                   .HasOne(o => o.RentalBooking)
+                   .WithOne(o => o.RentalTransaction)
+                   .HasForeignKey<RentalTransaction>(o => o.RentalBookingId)
+                   .IsRequired();
 
             builder.Entity<VehicleReturn>()
-                .HasOne(o => o.RentalTransaction)
-                .WithOne(o => o.VehicleReturn)
-                .HasForeignKey<VehicleReturn>(o => o.RentalTransactionId)
-                .IsRequired();
-            builder.Entity<VehicleReturn>().HasIndex(o => o.RentalTransactionId).IsUnique();
+                   .HasOne(o => o.RentalTransaction)
+                   .WithOne(o => o.VehicleReturn)
+                   .HasForeignKey<VehicleReturn>(o => o.RentalTransactionId)
+                   .IsRequired();
         }
     }
 }

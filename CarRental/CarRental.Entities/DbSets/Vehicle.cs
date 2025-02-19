@@ -1,4 +1,5 @@
-﻿using CarRental.Entities.Interfaces;
+﻿using System.Text.Json.Serialization;
+using CarRental.Entities.Interfaces;
 
 namespace CarRental.Entities.DbSets
 {
@@ -12,6 +13,7 @@ namespace CarRental.Entities.DbSets
         public FuelType FuelType { get; set; }
         public string PlateNumber { get; set; } = string.Empty;
         public Guid CarCategoryId { get; set; }
+        [JsonIgnore]
         public virtual CarCategory CarCategory { get; set; } = null!;
         public decimal RentalPricePerDay { get; set; }
         public bool IsAvailableForRent { get; set; }
