@@ -11,6 +11,7 @@ namespace CarRental.Entities.DbSets
     {
         public Guid Id { get; set; }
         public string CategoryName { get; set; } = string.Empty;
+        public byte[]? Picture { get; set; }
         public string Creator { get; set; } = string.Empty;
         public DateTime Created { get; set; }
         public string Modifier { get; set; } = string.Empty;
