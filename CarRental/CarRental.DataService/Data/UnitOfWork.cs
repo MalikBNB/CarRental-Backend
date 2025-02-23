@@ -12,6 +12,7 @@ namespace CarRental.DataService.Data
 
         public IVehiclesRepository Vehicles {  get; private set; }  
         public ICarCategoriesRepository CarCategories { get; private set; }
+        public IMaintnancesRepository Maintenances { get; private set; }
 
         public UnitOfWork(AppDbContext context)//, ILoggerFactory loggerFactory)
         {
@@ -20,6 +21,7 @@ namespace CarRental.DataService.Data
 
             Vehicles = new VehiclesRepository(context);
             CarCategories = new CarCategoriesRepository(context);
+            Maintenances = new MaintnancesRepository(context);
         }
 
 

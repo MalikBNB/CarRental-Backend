@@ -11,6 +11,7 @@ public class VehicleResponseDto
     public Guid Id { get; set; }
     public string Make { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
+    public byte[]? Picture { get; set; }
     public int Year { get; set; }
     public int Mileage { get; set; }
     public FuelType FuelType { get; set; }

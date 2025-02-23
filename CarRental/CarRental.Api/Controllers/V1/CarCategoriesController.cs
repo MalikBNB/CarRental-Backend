@@ -22,29 +22,34 @@ public class CarCategoriesController : BaseController
     {
     }
 
+    //[HttpGet]
+    //public async Task<IActionResult> GetAllAsync()
+    //{
+    //    var pagedResult = new PagedResult<CarCategoryResponseDto>();
+    //    pagedResult.Content = new List<CarCategoryResponseDto>();
+
+    //    var carCategories = await _unitOfWork.CarCategories.GetAllAsync();
+    //    if(!carCategories.Any())
+    //    {
+    //        pagedResult.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
+    //        return NotFound(pagedResult);
+    //    }
+
+    //    foreach (var carCategory in carCategories)
+    //        pagedResult.Content.Add(_mapper.Map<CarCategoryResponseDto>(carCategory));
+
+    //    pagedResult.ResultCount = pagedResult.Content.Count;
+
+    //    return Ok(pagedResult);
+    //}
+
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> FindAllAsync(int? page, int? pageSize)
     {
         var pagedResult = new PagedResult<CarCategoryResponseDto>();
         pagedResult.Content = new List<CarCategoryResponseDto>();
 
-        var carCategories = await _unitOfWork.CarCategories.GetAllAsync();
-
-        foreach (var carCategory in carCategories)
-            pagedResult.Content.Add(_mapper.Map<CarCategoryResponseDto>(carCategory));
-
-        pagedResult.ResultCount = pagedResult.Content.Count;
-
-        return Ok(pagedResult);
-    }
-
-    [HttpGet("page/{page}-{pageSize}"), Route("[controller]/FindAllAsync")]
-    public async Task<IActionResult> FindAllAsync(int page, int pageSize)
-    {
-        var pagedResult = new PagedResult<CarCategoryResponseDto>();
-        pagedResult.Content = new List<CarCategoryResponseDto>();
-
-        var categories = await _unitOfWork.CarCategories.GetAllAsync((page - 1) * pageSize, pageSize, ["Vehicles"]);
+        var categories = await _unitOfWork.CarCategories.GetAllAsync(page, pageSize, ["Vehicles"]);
         if (!categories.Any())
         {
             return NotFound(pagedResult);
@@ -53,8 +58,8 @@ public class CarCategoriesController : BaseController
         foreach (var category in categories)
             pagedResult.Content.Add(_mapper.Map<CarCategoryResponseDto>(category));
 
-        pagedResult.Page = page;
-        pagedResult.PageSize = pageSize;
+        pagedResult.Page = page ?? 0;
+        pagedResult.PageSize = pageSize ?? 0;
         pagedResult.ResultCount = pagedResult.Content.Count;
 
         return Ok(pagedResult);

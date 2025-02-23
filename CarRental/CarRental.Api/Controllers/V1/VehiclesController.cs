@@ -20,13 +20,36 @@ public class VehiclesController : BaseController
     {      
     }
 
+    //[HttpGet]
+    //[Route("Vehicle")]
+    //public async Task<IActionResult> GetAllAsync()
+    //{
+    //    var pagedResult = new PagedResult<VehicleResponseDto>();
+    //    pagedResult.Content = new List<VehicleResponseDto>();
+
+    //    var vehicles = await _unitOfWork.Vehicles.GetAllAsync(["CarCategory"]);
+    //    if (!vehicles.Any())
+    //    {
+    //        pagedResult.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
+    //        return NotFound(pagedResult);
+    //    }
+
+    //    foreach (var vehicle in vehicles)
+    //        pagedResult.Content.Add(_mapper.Map<VehicleResponseDto>(vehicle));
+
+    //    pagedResult.ResultCount = pagedResult.Content.Count;
+
+    //    return Ok(pagedResult); 
+    //}
+
+
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
+    public async Task<IActionResult> FindAllAsync(int? page, int? pageSize, int status = 1)
     {
         var pagedResult = new PagedResult<VehicleResponseDto>();
         pagedResult.Content = new List<VehicleResponseDto>();
 
-        var vehicles = await _unitOfWork.Vehicles.GetAllAsync(["CarCategory"]);
+        var vehicles = await _unitOfWork.Vehicles.FindAllAsync(v => v.Status == status, page, pageSize, ["CarCategory"]);
         if (!vehicles.Any())
         {
             return NotFound(pagedResult);
@@ -35,29 +58,8 @@ public class VehiclesController : BaseController
         foreach (var vehicle in vehicles)
             pagedResult.Content.Add(_mapper.Map<VehicleResponseDto>(vehicle));
 
-        pagedResult.ResultCount = pagedResult.Content.Count;
-
-        return Ok(pagedResult); 
-    }
-
-
-    [HttpGet("page/{page}-{pageSize}")]
-    public async Task<IActionResult> FindAllAsync(int page, int pageSize)
-    {
-        var pagedResult = new PagedResult<VehicleResponseDto>();
-        pagedResult.Content = new List<VehicleResponseDto>();
-
-        var vehicles = await _unitOfWork.Vehicles.FindAllAsync(v => v.Status == 1, (page - 1) * pageSize, pageSize, ["CarCategory"]);
-        if (!vehicles.Any())
-        {
-            return NotFound(pagedResult);
-        }
-
-        foreach (var vehicle in vehicles)
-            pagedResult.Content.Add(_mapper.Map<VehicleResponseDto>(vehicle));
-
-        pagedResult.Page = page;
-        pagedResult.PageSize = pageSize;
+        pagedResult.Page = page ?? 0;
+        pagedResult.PageSize = pageSize ?? 0;
         pagedResult.ResultCount = pagedResult.Content.Count;
 
         return Ok(pagedResult);

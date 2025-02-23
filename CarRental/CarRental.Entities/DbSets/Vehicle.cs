@@ -14,8 +14,10 @@ namespace CarRental.Entities.DbSets
         public FuelType FuelType { get; set; }
         public string PlateNumber { get; set; } = string.Empty;
         public Guid CarCategoryId { get; set; }
+
         [JsonIgnore]
         public virtual CarCategory CarCategory { get; set; } = null!;
+
         public decimal RentalPricePerDay { get; set; }
         public bool IsAvailableForRent { get; set; }
         public byte Status { get; set; } = 1;

@@ -70,12 +70,12 @@ namespace CarRental.DataService.Repositories
 
         public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, string[] includes = null!)
         {
-            return await GenerateQuery(includes).Where(criteria).AsNoTracking().ToListAsync();
+            return await GenerateQuery(includes, null, null).Where(criteria).AsNoTracking().ToListAsync();
         }
 
-        public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int skip, int take, string[] includes = null!)
+        public virtual async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int? page, int? pageSize, string[] includes = null!)
         {
-            return await GenerateQuery(includes).Where(criteria).AsNoTracking().Skip(skip).Take(take).ToListAsync();
+            return await GenerateQuery(includes, page, pageSize).Where(criteria).AsNoTracking().ToListAsync();
         }
         
         public virtual async Task<T> FindAsync(Guid id)
@@ -85,26 +85,32 @@ namespace CarRental.DataService.Repositories
 
         public virtual async Task<T> FindAsync(Expression<Func<T, bool>> criteria, string[] includes = null!)
         {
-            return await GenerateQuery(includes).AsNoTracking().SingleOrDefaultAsync(criteria) ?? null!;
+            return await GenerateQuery(includes, null, null).AsNoTracking().SingleOrDefaultAsync(criteria) ?? null!;
         }
 
         public virtual async Task<IEnumerable<T>> GetAllAsync(string[] includes = null!)
         {
-            return await GenerateQuery(includes).AsNoTracking().ToListAsync();
+            return await GenerateQuery(includes, null, null).AsNoTracking().ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(int skip, int take, string[] includes = null!)
+        public async Task<IEnumerable<T>> GetAllAsync(int? page, int? pageSize, string[] includes = null!)
         {
-            return await GenerateQuery(includes).Skip(skip).Take(take).AsNoTracking().ToListAsync();
+            return await GenerateQuery(includes, page, pageSize).AsNoTracking().ToListAsync();
         }
 
-        private IQueryable<T> GenerateQuery(string[] includes)
+        private IQueryable<T> GenerateQuery(string[] includes, int? page, int? pageSize)
         {
             IQueryable<T> query = dbSet;
 
             if (includes is not null)
                 foreach (var include in includes)
                     query = query.Include(include);
+
+            if(pageSize.HasValue)
+                query = query.Take(pageSize.Value);
+
+            if (page.HasValue)
+                query = query.Skip((page.Value - 1) * pageSize.Value);
 
             return query;
         }

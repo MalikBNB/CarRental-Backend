@@ -11,6 +11,7 @@ namespace CarRental.DataService.IConfiguration
     {
         IVehiclesRepository Vehicles { get; }
         ICarCategoriesRepository CarCategories { get; }
+        IMaintnancesRepository Maintenances { get; }
 
         Task CompleteAsync();
     }
