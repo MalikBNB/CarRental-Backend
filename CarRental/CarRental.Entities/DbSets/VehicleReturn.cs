@@ -11,7 +11,7 @@ namespace CarRental.Entities.DbSets
     {
         public Guid Id { get; set; }
         public Guid RentalTransactionId { get; set; }
-        public virtual RentalTransaction RentalTransaction { get; set; } = null!;
+        public virtual Transaction RentalTransaction { get; set; } = null!;
         public DateTime ActualReturnDate { get; set; }
         public byte ActualRentalDays { get; set; }
         public byte Mileage { get; set; }

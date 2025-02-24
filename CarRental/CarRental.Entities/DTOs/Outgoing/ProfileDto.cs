@@ -16,7 +16,6 @@ namespace CarRental.Entities.DTOs.Outgoing
         public string Address { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Gendor { get; set; } = string.Empty;
-        public byte Status { get; set; }
         public byte[]? Picture { get; set; }
         public string DriverLicenseNumber { get; set; } = string.Empty;
     }

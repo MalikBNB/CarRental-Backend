@@ -17,7 +17,7 @@ namespace CarRental.DataService.Data
         public virtual DbSet<CarCategory> CarCategories { get; set; }
         public virtual DbSet<VehicleReturn> VehicleReturns { get; set; }
         public virtual DbSet<RentalBooking> RentalBookings { get; set; }
-        public virtual DbSet<RentalTransaction> RentalTransactions { get; set; }
+        public virtual DbSet<Transaction> RentalTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -61,10 +61,10 @@ namespace CarRental.DataService.Data
                    .OnDelete(DeleteBehavior.ClientCascade);
 
             // One-To-One Relationships 
-            builder.Entity<RentalTransaction>()
+            builder.Entity<Transaction>()
                    .HasOne(o => o.RentalBooking)
                    .WithOne(o => o.RentalTransaction)
-                   .HasForeignKey<RentalTransaction>(o => o.RentalBookingId)
+                   .HasForeignKey<Transaction>(o => o.RentalBookingId)
                    .IsRequired();
 
             builder.Entity<VehicleReturn>()

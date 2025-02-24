@@ -22,8 +22,6 @@ namespace CarRental.Entities.DbSets
         [MaxLength(10)]
         public string Gendor { get; set; } = string.Empty;
 
-        public byte Status { get; set; } = 1;
-
         public byte[]? Picture { get; set; }
 
         [MaxLength(100)]

@@ -7,7 +7,7 @@ using CarRental.Entities.Interfaces;
 
 namespace CarRental.Entities.DbSets
 {
-    public class RentalTransaction : IBaseEntity
+    public class Transaction : IBaseEntity
     {
         public Guid Id { get; set; }
         public Guid RentalBookingId { get; set; }

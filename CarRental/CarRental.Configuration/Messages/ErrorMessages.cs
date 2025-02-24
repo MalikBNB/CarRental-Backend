@@ -56,5 +56,11 @@ public static class ErrorMessages
     {
         public static string VehicleAlreadyExists = "Vehicle already exists!";
         public static string VehicleNotExist = "Vehicle does not exist!";
+        public static string VehicleNotAvailable = "Vehicle is not available for rent.";
+    }
+
+    public static class Customer
+    {
+        public static string CustomerNotExist = "Customer does not exist!";
     }
 }

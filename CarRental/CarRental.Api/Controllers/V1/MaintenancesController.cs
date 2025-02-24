@@ -5,6 +5,7 @@ using CarRental.Entities.DbSets;
 using CarRental.Entities.DTOs.Incoming;
 using CarRental.Entities.DTOs.Outgoing;
 using CarRental.Entities.Global;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +61,7 @@ public class MaintenancesController : BaseController
     }
 
     [HttpPost]
+    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> AddAsync(MaintenanceRequestDto dto)
     {
         if (!ModelState.IsValid)
@@ -113,6 +115,7 @@ public class MaintenancesController : BaseController
     }
 
     [HttpPut]
+    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> UpdateAsync(Guid id, MaintenanceRequestDto dto)
     {
         if (!ModelState.IsValid)
@@ -148,6 +151,7 @@ public class MaintenancesController : BaseController
     }
 
     [HttpDelete]
+    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
         if(await _unitOfWork.Maintenances.FindAsync(m => m.Id == id) is not null)

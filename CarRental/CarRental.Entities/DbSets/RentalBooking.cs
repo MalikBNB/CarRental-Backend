@@ -10,12 +10,12 @@ namespace CarRental.Entities.DbSets
     public class RentalBooking : IBaseEntity
     {
         public Guid Id { get; set; }
-        public string CustomerId { get; set; } = string.Empty;
+        public Guid CustomerId { get; set; }
         public virtual User Customer { get; set; } = null!;
         public Guid VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; } = null!;
         public Guid RentalTransactionId { get; set; }
-        public virtual RentalTransaction? RentalTransaction { get; set; } = null!;
+        public virtual Transaction? RentalTransaction { get; set; } = null!;
         public DateTime RentalStartDate { get; set; }
         public DateTime RentalEndDate { get; set; }
         public string PickupLocation { get; set; } = string.Empty;
