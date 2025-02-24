@@ -118,6 +118,16 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CarRentalFront", policyBuilder =>
+    {
+        policyBuilder.WithOrigins("http://localhost:3001");
+        policyBuilder.AllowAnyHeader();
+        policyBuilder.AllowAnyMethod();
+        policyBuilder.AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -157,5 +167,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors("CarRentalFront");
 
 app.Run();
