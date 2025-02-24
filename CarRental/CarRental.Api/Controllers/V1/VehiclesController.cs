@@ -144,18 +144,13 @@ public class VehiclesController : BaseController
             return NotFound(result);
         }
 
-        var vehicle = await _unitOfWork.Vehicles.FindAsync(v => v.Id == id);
-        if(vehicle is null)
-        {
-            result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
-            return NotFound(result);
-        }
+        var vehicle = _mapper.Map<Vehicle>(dto);
 
-        vehicle = _mapper.Map<Vehicle>(dto);
+        vehicle.Id = id;
         vehicle.Modifier = user.UserName!;
         vehicle.Modified = DateTime.Now;
 
-        var isUpdated = _unitOfWork.Vehicles.Update(vehicle);
+        var isUpdated = await _unitOfWork.Vehicles.UpdateAsync(vehicle);
         if (!isUpdated)
             return BadRequest(PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.Generic.SomethingWentWrong));
 

@@ -12,7 +12,10 @@ namespace CarRental.Api.Profiles
             CreateMap<VehicleRequestDto, Vehicle>();
 
             CreateMap<Vehicle, VehicleResponseDto>()
-                .ForMember( dest => dest.CarCategory, from => from.MapFrom(v => v.CarCategory.CategoryName));
+                .ForMember( 
+                    dest => dest.CarCategory, 
+                    from => from.MapFrom(v => v.CarCategory.CategoryName)
+                );
         }
     }
 }

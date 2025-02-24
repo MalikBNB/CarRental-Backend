@@ -10,7 +10,7 @@ namespace CarRental.Entities.DbSets
     public class RentalBooking : IBaseEntity
     {
         public Guid Id { get; set; }
-        public Guid CustomerId { get; set; }
+        public string CustomerId { get; set; }
         public virtual User Customer { get; set; } = null!;
         public Guid VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; } = null!;

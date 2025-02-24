@@ -16,5 +16,21 @@ public class VehiclesRepository : GenericRepository<Vehicle>, IVehiclesRepositor
         
     }
 
-    
+
+    public override async Task<bool> UpdateAsync(Vehicle entity)
+    {
+        try
+        {
+            var oldVehicle = await FindAsync(entity.Id);
+            if (oldVehicle is null) return false;
+
+            dbSet.Entry(oldVehicle).CurrentValues.SetValues(entity);
+
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
 }

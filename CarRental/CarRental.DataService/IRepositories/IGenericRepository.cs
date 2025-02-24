@@ -19,6 +19,7 @@ namespace CarRental.DataService.IRepositories
         Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> criteria, int? page, int? pageSize, string[] includes = null!);
         Task<bool> AddAsync(T entity);
         bool Update(T entity);
+        Task<bool> UpdateAsync(T entity);
         bool Delete(T entity);
     }
 }

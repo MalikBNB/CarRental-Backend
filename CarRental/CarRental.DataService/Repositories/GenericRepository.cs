@@ -34,12 +34,12 @@ namespace CarRental.DataService.Repositories
 
         public virtual async Task<bool> AddAsync(T entity)
         {
-            try 
-            { 
-                return await dbSet.AddAsync(entity) is not null; 
-            } 
-            catch (Exception) 
-            { 
+            try
+            {
+                return await dbSet.AddAsync(entity) is not null;
+            }
+            catch (Exception)
+            {
                 return false;
             }
         }
@@ -49,6 +49,18 @@ namespace CarRental.DataService.Repositories
             try
             {
                 return dbSet.Update(entity) is not null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public virtual async Task<bool> UpdateAsync(T entity)
+        {
+            try
+            {
+                return await Task.Run(() => Update(entity));
             }
             catch (Exception)
             {
@@ -77,7 +89,7 @@ namespace CarRental.DataService.Repositories
         {
             return await GenerateQuery(includes, page, pageSize).Where(criteria).AsNoTracking().ToListAsync();
         }
-        
+
         public virtual async Task<T> FindAsync(Guid id)
         {
             return await dbSet.FindAsync(id) ?? null!;
@@ -106,7 +118,7 @@ namespace CarRental.DataService.Repositories
                 foreach (var include in includes)
                     query = query.Include(include);
 
-            if(pageSize.HasValue)
+            if (pageSize.HasValue)
                 query = query.Take(pageSize.Value);
 
             if (page.HasValue)
@@ -115,6 +127,6 @@ namespace CarRental.DataService.Repositories
             return query;
         }
 
-        
+
     }
 }
