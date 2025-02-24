@@ -49,10 +49,12 @@ public static class ErrorMessages
     public static class CarCategory
     {
         public static string CategoryAlreadyExists = "Category already exists!";
+        public static string CategoryNotExist = "Category does not exist!";
     }
-    
+
     public static class Vehicle
     {
         public static string VehicleAlreadyExists = "Vehicle already exists!";
+        public static string VehicleNotExist = "Vehicle does not exist!";
     }
 }

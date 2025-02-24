@@ -44,12 +44,12 @@ public class VehiclesController : BaseController
 
 
     [HttpGet]
-    public async Task<IActionResult> FindAllAsync(int? page, int? pageSize, int status = 1)
+    public async Task<IActionResult> GetAllAsync(int? page, int? pageSize)
     {
         var pagedResult = new PagedResult<VehicleResponseDto>();
         pagedResult.Content = new List<VehicleResponseDto>();
 
-        var vehicles = await _unitOfWork.Vehicles.FindAllAsync(v => v.Status == status, page, pageSize, ["CarCategory"]);
+        var vehicles = await _unitOfWork.Vehicles.GetAllAsync(page, pageSize, ["CarCategory"]);
         if (!vehicles.Any())
         {
             return NotFound(pagedResult);
@@ -71,7 +71,7 @@ public class VehiclesController : BaseController
     {
         var result = new Result<VehicleResponseDto>();
 
-        var vehicle = await _unitOfWork.Vehicles.FindAsync(v => v.Id == id && v.Status == 1, ["CarCategory"]);
+        var vehicle = await _unitOfWork.Vehicles.FindAsync(v => v.Id == id, ["CarCategory"]);
         if(vehicle is null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
@@ -93,8 +93,7 @@ public class VehiclesController : BaseController
 
         var result = new Result<VehicleRequestDto>();
 
-        var vehicleExist = await _unitOfWork.Vehicles.FindAsync(v => v.PlateNumber == dto.PlateNumber &&
-                                                                v.Status == 1);
+        var vehicleExist = await _unitOfWork.Vehicles.FindAsync(v => v.PlateNumber == dto.PlateNumber);
         if(vehicleExist is not null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.BadRequest, ErrorMessages.Vehicle.VehicleAlreadyExists);
@@ -145,7 +144,7 @@ public class VehiclesController : BaseController
             return NotFound(result);
         }
 
-        var vehicle = await _unitOfWork.Vehicles.FindAsync(v => v.Id == id && v.Status == 1);
+        var vehicle = await _unitOfWork.Vehicles.FindAsync(v => v.Id == id);
         if(vehicle is null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
@@ -170,7 +169,7 @@ public class VehiclesController : BaseController
     [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
-        if (!await _unitOfWork.Vehicles.AnyAsync(v => v.Id == id && v.Status == 1))
+        if (!await _unitOfWork.Vehicles.AnyAsync(v => v.Id == id))
             return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound));
 
         var isDeleted = _unitOfWork.Vehicles.Delete(new Vehicle { Id = id });

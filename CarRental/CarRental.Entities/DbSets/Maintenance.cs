@@ -16,7 +16,6 @@ namespace CarRental.Entities.DbSets
         public DateTime EntranceDate { get; set; } = DateTime.Now;
         public DateTime ExitDate { get; set; }
         public decimal Cost { get; set; }
-        public byte Status { get; set; } = 1;
         public string Creator { get; set; } = string.Empty;
         public DateTime Created { get; set; }
         public string Modifier { get; set; } = string.Empty;

@@ -20,12 +20,12 @@ public class MaintenancesController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> FindAllAsync(int? page, int? pageSize, int status = 1)
+    public async Task<IActionResult> GetAllAsync(int? page, int? pageSize)
     {
         var pagedResult = new PagedResult<MaintenanceResponseDto>();
         pagedResult.Content = new List<MaintenanceResponseDto>();
 
-        var maintnances = await _unitOfWork.Maintenances.FindAllAsync(m => m.Status == status, page, pageSize, ["maintenance"]);
+        var maintnances = await _unitOfWork.Maintenances.GetAllAsync(page, pageSize, ["maintenance"]);
         if (!maintnances.Any())
         {
             pagedResult.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
@@ -70,8 +70,26 @@ public class MaintenancesController : BaseController
         var user = await _userManager.GetUserAsync(User);
         if (user is null)
         {
-            result.Error = PopulateError(404, ErrorMessages.User.UserNotFound, ErrorMessages.Generic.ObjectNotFound);
+            result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound);
             return NotFound(result);
+        }
+
+        var vehicle = await _unitOfWork.Vehicles.FindAsync(dto.VehicleId);
+        if(vehicle is null)
+        {
+            result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Vehicle.VehicleNotExist);
+            return NotFound(result);
+        }
+
+        vehicle.IsAvailableForRent = false;
+        vehicle.Modifier = user.UserName!;
+        vehicle.Modified = DateTime.Now;
+
+        var isUpdated = _unitOfWork.Vehicles.Update(vehicle);
+        if (!isUpdated)
+        {
+            result.Error = PopulateError(400, ErrorMessages.Generic.BadRequest, ErrorMessages.Generic.SomethingWentWrong);
+            return BadRequest(result);
         }
 
         var maintenance = _mapper.Map<Maintenance>(dto);
@@ -109,7 +127,7 @@ public class MaintenancesController : BaseController
             return NotFound(result);
         }
 
-        var maintenance = await _unitOfWork.Maintenances.FindAsync(m => m.Id == id && m.Status == 1);
+        var maintenance = await _unitOfWork.Maintenances.FindAsync(m => m.Id == id);
         if (maintenance is null)
         {
             result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound);
@@ -132,7 +150,7 @@ public class MaintenancesController : BaseController
     [HttpDelete]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
-        if(await _unitOfWork.Maintenances.FindAsync(m => m.Id == id && m.Status == 1) is not null)
+        if(await _unitOfWork.Maintenances.FindAsync(m => m.Id == id) is not null)
             return NotFound(PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.Generic.ObjectNotFound));
 
         var isDeleted = _unitOfWork.Maintenances.Delete(new Maintenance { Id = id });

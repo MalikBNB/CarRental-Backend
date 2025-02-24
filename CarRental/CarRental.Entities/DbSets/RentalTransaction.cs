@@ -20,7 +20,6 @@ namespace CarRental.Entities.DbSets
         public decimal RestAmount {  get; set; }
         public decimal RefundedAmount { get; set; }
         public DateTime Date { get; set; }
-        public byte Status { get; set; } = 1;
         public string Creator { get; set; } = string.Empty;
         public DateTime Created { get; set; }
         public string Modifier { get; set; } = string.Empty;

@@ -19,7 +19,6 @@ namespace CarRental.Entities.DbSets
         public string FinalCheckNotes { get; set; } = string.Empty;
         public decimal AdditionalCharges { get; set; }
         public decimal ActualTotalDueAmount { get; set; }
-        public byte Status { get; set; } = 1;
         public string Creator { get; set; } = string.Empty;
         public DateTime Created { get; set; }
         public string Modifier { get; set; } = string.Empty;
