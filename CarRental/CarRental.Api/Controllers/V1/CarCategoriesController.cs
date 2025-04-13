@@ -84,7 +84,7 @@ public class CarCategoriesController : BaseController
     }
 
     [HttpPost]
-    [Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
+    //[Authorize(Roles = $"{AppRoles.Admin}, {AppRoles.User}")]
     public async Task<IActionResult> AddAsync([FromBody] CarCategoryRequestDto dto)
     {
         if (!ModelState.IsValid)
@@ -98,17 +98,17 @@ public class CarCategoriesController : BaseController
             return BadRequest(result);
         }
 
-        var loggedInUser = await _userManager.GetUserAsync(User);
-        if (loggedInUser is null)
-        {
-            result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound);
-            return NotFound(result);
-        }
+        //var loggedInUser = await _userManager.GetUserAsync(User);
+        //if (loggedInUser is null)
+        //{
+        //    result.Error = PopulateError(404, ErrorMessages.Generic.ObjectNotFound, ErrorMessages.User.UserNotFound);
+        //    return NotFound(result);
+        //}
 
         var carCategory = _mapper.Map<CarCategory>(dto);
-        carCategory.Creator = loggedInUser.UserName!;
+        carCategory.Creator = "Malik07";//loggedInUser.UserName!;
         carCategory.Created = DateTime.Now;
-        carCategory.Modifier = loggedInUser.UserName!;
+        carCategory.Modifier = "Malik07";//loggedInUser.UserName!;
         carCategory.Modified = DateTime.Now;
 
         var isAdded = await _unitOfWork.CarCategories.AddAsync(carCategory);
